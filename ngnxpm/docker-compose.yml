@@ -1,0 +1,19 @@
+version: '3'
+services:
+  nginx_pm:
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: nginx_pm
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '81:81'
+      - '443:443'
+    volumes:
+      - nginx_pm_data:/data
+      - nginx_pm_letsencrypt:/etc/letsencrypt
+networks:
+  default:
+      name: public_facing
+volumes:
+  nginx_pm_data:
+  nginx_pm_letsencrypt:

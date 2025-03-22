@@ -1,0 +1,50 @@
+version: '3'
+
+services:
+  ghost:
+    image: arm64v8/ghost:5
+    restart: always
+    environment:
+      NODE_ENV: production
+      url: http://jadia.in
+      # url: http://192.168.29.223:2368
+      database__client: mysql
+      database__connection__host: db
+      database__connection__user: ${MYSQL_USER}
+      database__connection__password: ${MYSQL_PASSWORD}
+      database__connection__database: ${MYSQL_DATABASE}
+      # LETSENCRYPT_HOST: nitishjadia.com
+      # LETSENCRYPT_EMAIL: nitish@jadia.dev
+    depends_on:
+      - db
+    volumes:
+      - ghost_data:/var/lib/ghost/content
+    env_file:
+      - .env
+    ports:
+      - "2368:2368"
+    networks:
+      - public_facing
+
+  db:
+    image: mysql:8
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+    volumes:
+      - db_data:/var/lib/mysql
+    env_file:
+      - .env
+    networks:
+      - public_facing
+
+volumes:
+  ghost_data:
+  db_data:
+
+networks:
+  public_facing:
+    external: True

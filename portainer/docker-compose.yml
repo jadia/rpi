@@ -1,0 +1,13 @@
+version: "3"
+services:
+  portainer:
+    #image: portainer/portainer-ce:latest
+    image: portainer/portainer-ce:linux-arm64-2.19.4
+    ports:
+      - 9443:9443
+    volumes:
+      - portainer_data:/data
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: unless-stopped
+volumes:
+  portainer_data:

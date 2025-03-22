@@ -1,0 +1,25 @@
+version: "3.7"
+services:
+  deluge:
+    image: lscr.io/linuxserver/deluge:latest
+    container_name: deluge
+    environment:
+      - PUID=1000
+      - PGID=1000
+      - TZ=Asia/Kolkata
+      - DELUGE_LOGLEVEL=error #optional
+    volumes:
+      - /home/ubuntu/data/deluge/config:/config
+      - /mnt/ssd/torrent-download/:/downloads
+      - /mnt/ssd/movies:/movies
+      - /mnt/ssd/series:/series
+    ports:
+      - 8112:8112
+      - 6881:6881
+      - 6881:6881/udp
+      - 58846:58846
+    restart: unless-stopped
+networks:
+  default:
+      name: public_facing
+      external: true

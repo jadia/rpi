@@ -1,7 +1,8 @@
 version: '3'
 services:
   nginx_pm:
-    image: 'jc21/nginx-proxy-manager:latest'
+    #earlier: 2.9.19
+    image: 'jc21/nginx-proxy-manager:2.9.19'
     container_name: nginx_pm
     restart: unless-stopped
     ports:
@@ -11,6 +12,7 @@ services:
     volumes:
       - nginx_pm_data:/data
       - nginx_pm_letsencrypt:/etc/letsencrypt
+#      - ./_hsts.conf:/app/templates/_hsts.conf:ro
 networks:
   default:
       name: public_facing

@@ -1,0 +1,27 @@
+version: '3.5'
+services:
+  jellyfin:
+    image: jellyfin/jellyfin
+    container_name: jellyfin
+    user: 1000:1000
+    ports:
+    - "8096:8096"
+    # network_mode: 'host'
+    volumes:
+      - /home/ubuntu/data/jellyfin/config:/config
+      - /home/ubuntu/data/jellyfin/cache:/cache
+      - /mnt/ssd/movies:/media/movies
+      - /mnt/ssd/series:/media/series
+      - /mnt/ssd/torrent-download:/media/torrent
+      # - /home/ubuntu/data/jellyfin/media2:/media2:ro
+    restart: 'unless-stopped'
+    # Optional - alternative address used for autodiscovery
+    environment:
+      - JELLYFIN_PublishedServerUrl=${URL}
+networks:
+  default:
+      name: public_facing
+      external: true
+    # Optional - may be necessary for docker healthcheck to pass if running in host network mode
+    # extra_hosts:
+    #   - "host.docker.internal:host-gateway"

@@ -1,0 +1,22 @@
+version: '3.5'
+
+services:
+  samba:
+    image: crazymax/samba
+    container_name: samba
+    hostname: rasp_samba
+    network_mode: host
+    cap_add:
+      - CAP_NET_ADMIN
+      - CAP_NET_RAW
+    volumes:
+      - ./data:/data
+        #      - ./smb/private:/var/lib/samba/private
+      - /mnt/ssd:/samba/ssd
+    environment:
+      - "TZ=Asia/Kolkata"
+      - "SAMBA_LOG_LEVEL=0"
+      - "WSDD2_ENABLE=1"
+      - "WSDD2_NETBIOS_NAME=rasp_samba"
+    restart: always
+

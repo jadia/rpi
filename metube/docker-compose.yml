@@ -10,6 +10,11 @@ services:
       - /mnt/ssd/youtube:/downloads
     networks:
       - public_facing
+    environment:
+      - DELETE_FILE_ON_TRASHCAN=true
+      - DOWNLOAD_DIR=/downloads
+      - DOWNLOAD_DIRS_INDEXABLE=true
+#      - URL_PREFIX=
 
 networks:
   public_facing:

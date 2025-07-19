@@ -1,0 +1,16 @@
+version: "3.7"
+services:
+  flame:
+    image: pawelmalak/flame:multiarch2.3.1
+    container_name: flame
+    volumes:
+      - /home/ubuntu/data/flame/:/app/data
+    ports:
+      - 5005:5005
+    restart: unless-stopped
+    environment:
+      - PASSWORD=${FLAME_PASSWORD}
+networks:
+  default:
+      name: public_facing
+      external: true

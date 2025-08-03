@@ -1,33 +1,20 @@
 version: '3'
 services:
-  ollama:
-    image: ollama/ollama:latest
-    container_name: ollama
-    tty: true
-    restart: unless-stopped
-    volumes:
-      - ollama:/root/.ollama
-    ports:
-      - "11434:11434"   # Ollama API endpoint
-
   open-webui:
-    image: ghcr.io/open-webui/open-webui:v0.6.16
+    image: ghcr.io/open-webui/open-webui:v0.6.16-ollama
     container_name: open-webui
     restart: unless-stopped
     volumes:
       - open-webui:/app/backend/data
+      - ollama:/root/.
     ports:
-      - "3000:8080"   # Expose webui on http://<your_pi_ip>:3000
-    depends_on:
-      - ollama
-    environment:
-      - OLLAMA_BASE_URL=http://ollama:11434
+      - "3000:8080"
+      - "11434:11434"
+    networks:
+      - public_facing
 networks:
-  default:
-      name: public_facing
-      external: true
-
+  public_facing:
+    external: true
 volumes:
-  ollama:
   open-webui:
-
+  ollama:

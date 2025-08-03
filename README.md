@@ -1,5 +1,5 @@
-# RPi
-Collection of resources dedicated to my Raspberry Pi set up.
+# Raspberry Pi
+Collection of resources dedicated to my Raspberry Pi 4B 8GB RAM set up.
 
 ## Raspberry Pi SD Card Backup, Shrink, and Restore with Docker PiShrink
 

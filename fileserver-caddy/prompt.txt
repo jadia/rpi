@@ -1,0 +1,41 @@
+Objective:
+Modify the existing files to create an efficient and robust Docker Compose setup for a Caddy v2 web server running on a Raspberry Pi. The server's purpose is to provide a simple, unauthenticated file browser for a directory containing very large files (2GB-15GB), optimized for the resource-constrained environment of the Pi.
+
+Role:
+Act as a senior DevOps engineer with expertise in containerization and performance optimization for low-power, ARM-based devices.
+
+Key Requirements:
+
+1.  Target Environment:
+       The server will run on a Raspberry Pi (ARM architecture).
+       It will primarily serve very large files (2GB-15GB), so download reliability is paramount.
+
+2.  Technology Stack:
+       Use the latest Docker Compose specification (`compose.yml`).
+       Use the `caddy:2-alpine` image, as it is lightweight and multi-architecture (ARM-compatible).
+
+3.  Core Functionality:
+       Serve a file browser (directory listing) for the host directory `/mnt/ssd/`.
+       The file browser should be the root of the web server.
+       The service must be public on the local network, with no authentication required.
+
+4.  Networking:
+       The server must operate on HTTP only. Do not enable or provision TLS certificates.
+       Explicitly disable Caddy's automatic HTTPS features.
+       Map port `8080` on the host to port `80` inside the Caddy container.
+
+5.  Performance & Optimization:
+       Critical: The configuration must fully support HTTP Range requests to allow for resumable and multi-threaded downloads by download managers.
+       CPU Optimization: Enable Gzip compression, but configure it intelligently to only apply to compressible text-based file types. This prevents the Raspberry Pi's CPU from being wasted trying to compress already-compressed large files (e.g., `.zip`, `.mkv`, `.rar`).
+
+6.  Docker Compose Best Practices:
+       The service name should be `fileserver`.
+       Include a `restart: unless-stopped` policy for resilience.
+       Mount the host directory `/mnt/ssd/` as a read-only volume to prevent accidental modification of source files.
+       Use a separate `Caddyfile` for configuration, mounted into the container.
+
+Deliverables:
+
+1.  A clean and un-commented `compose.yml` file.
+2.  A `Caddyfile` with meaningful, line-by-line comments explaining the purpose and performance considerations of each directive, especially in the context of a Raspberry Pi serving large files.
+3.  Clear, concise instructions on how to create the necessary directory structure and save the two files.

@@ -1,0 +1,33 @@
+# Caddy v2 configuration optimized for a Raspberry Pi file server.
+
+{
+    # This global option is critical for performance on a resource-constrained device.
+    # It completely disables Caddy's automatic HTTPS features, preventing the Pi
+    # from using CPU and memory to manage TLS certificates.
+    auto_https off
+}
+
+# Defines the server, listening on port 80 for all incoming HTTP requests.
+:80 {
+    # Sets the web root to /srv/data, which is the mount point for your /mnt/ssd directory.
+    # The asterisk (*) matcher means this applies to all requests.
+    root * /srv/data
+
+    # This block enables Gzip compression intelligently to save CPU cycles.
+    # Instead of compressing everything, it only compresses specific file types
+    # that benefit from it, avoiding CPU waste on already-compressed large files.
+    @compressible {
+        # The 'path' matcher checks if the request URL ends with one of the following
+        # file extensions. This is a reliable way to select text-based files for compression.
+        path *.html *.css *.js *.json *.xml *.txt *.srt *.vtt *.nfo
+    }
+    # The 'encode' directive applies Gzip compression only to requests that match
+    # the @compressible named matcher defined above.
+    encode @compressible gzip
+
+    # This is the core directive for serving files.
+    # 'file_server' inherently supports HTTP Range requests, which is essential for
+    # download managers and allows for resumable and multi-threaded downloads of your large files.
+    # 'browse' enables the directory listing view in the browser.
+    file_server browse
+}

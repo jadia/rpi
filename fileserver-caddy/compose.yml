@@ -1,0 +1,16 @@
+services:
+  fileserver:
+    image: caddy:2-alpine
+    container_name: fileserver-caddy
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile
+      - /mnt/ssd:/srv/data:ro
+    networks:
+      - public_facing
+
+networks:
+  public_facing:
+    external: true

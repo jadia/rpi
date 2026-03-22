@@ -1,5 +1,25 @@
 version: "3.7"
 services:
+  gluetun:
+    image: qmcgaw/gluetun:latest
+    container_name: gluetun
+    cap_add:
+      - NET_ADMIN
+    devices:
+      - /dev/net/tun:/dev/net/tun
+    env_file:
+      - .env
+    environment:
+      - VPN_SERVICE_PROVIDER=protonvpn
+      - VPN_TYPE=wireguard
+      # Pulls the private key dynamically from the .env file
+      - WIREGUARD_PRIVATE_KEY=${WIREGUARD_PRIVATE_KEY}
+      - FREE_ONLY=on
+      - HTTPPROXY=on
+    restart: unless-stopped
+    networks:
+      - public_facing
+
   jackett:
     image: lscr.io/linuxserver/jackett:latest
     container_name: jackett
@@ -16,6 +36,7 @@ services:
       - net.ipv6.conf.all.disable_ipv6=1
     depends_on:
       - flaresolverr
+      - gluetun
     networks:
       - public_facing
 
@@ -61,7 +82,7 @@ services:
     image: ghcr.io/flaresolverr/flaresolverr:latest
     container_name: flaresolverr
     environment:
-      - LOG_LEVEL=info #optional
+      - LOG_LEVEL=info
       - TZ=Asia/Kolkata
     ports:
       - 8191:8191

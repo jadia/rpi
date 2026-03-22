@@ -1,0 +1,180 @@
+#Adapted from: https://gist.github.com/Webreaper/81ecda3ecc45fa61a16dfc90cfc4550d
+
+# Docker compose to set up containers for all services you need:
+# VPN
+#   Sonarr, Radarr, Lidarr, Qbittorrent
+# Non-VPN
+#   Plex, get_iplayer
+# Before running docker-compose, you should pre-create all of the following folders.
+# Folders for Docker State:
+#  /volume1/dockerdata.             - root where this docker-compose.yml should live
+#  /volume1/dockerdata/plex         - Plex config and DB
+#  /volume1/dockerdata/sonarr       - Sonarr config and DB
+#  /volume1/dockerdata/radarr       - Radarr config and DB
+#  /volume1/dockerdata/lidarr       - Lidarr config and DB
+#  /volume1/dockerdata/qbt          - QBitorrent config and DB
+#  /volume1/dockerdata/prowlarr     - Prowlarr config and DB
+#  /volume1/dockerdata/get_iplayer  - Get_iPlayer config and DB
+# Folders for Media etc:
+#  /volume1/photo                   - Root storage for photo files
+#  /volume1/music                   - Root storage for music files
+#  /volume1/video                   - Root storage for video files
+#  /volume1/video/TV                - folder for Sonarr/Plex TV shows
+#  /volume1/video/Films             - folder for Radarr/Plex Movies
+#  /volume1/video/Downloads         - QBT folder for TV downloads (that Sonarr will process)
+#  /volume1/video/FilmDownloads     - QBT folder for Movie downloads (that Radarr will process)
+#  /volume1/video/MusicDownloads    - QBT folder for Music downloads (that Lidarr will process)
+#  /volume1/video/Downloads/iPlayer - Destination folder for get_iplayer. See https://github.com/Webreaper/SonarrAutoImport
+# 
+# Note that Sonarr and Radarr don't necessarily need the VPN if you're using Prowlarr for the indexers. 
+# But Prowlarr should be behind the VPN to avoid ISPs that block indexers.
+
+version: "2"
+services:
+    expressvpn:
+        image: polkaned/expressvpn
+        container_name: expressvpn
+        environment:
+            - ACTIVATION_CODE=YOUR_CODE_HERE
+        cap_add:
+            - NET_ADMIN
+        devices:
+            - "/dev/net/tun:/dev/net/tun"
+        privileged: true
+        tty: true
+        ports:
+            # QBT UI Port
+            - 8090:8090
+            # Bittorrent port
+            - 6881:6881
+            - 6881:6881/udp
+            # Web port
+            - 8080:8080
+            - 9117:9117
+            # Sonarr port
+            - 8989:8989
+            # Radarr port
+            - 7878:7878
+            # Lidarr port
+            - 8686:8686
+            # Prowlarr port
+            - 9696:9696
+        command: /bin/bash
+        restart: unless-stopped
+
+    qbittorrent:
+        image: linuxserver/qbittorrent
+        container_name: qbittorrent
+        environment:
+            - PUID=1024
+            - PGID=101
+            - TZ=Europe/London
+            - UMASK_SET=022
+            - WEBUI_PORT=8090
+        volumes:
+            - /volume1/dockerdata/qbt/config:/config
+            - /volume1/video/Seeding:/downloads
+            - /volume1/video/Downloads:/tvdownloads 
+            - /volume1/video/FilmDownloads:/filmdownloads 
+            - /volume1/video/MusicDownloads:/musicdownloads
+        network_mode: service:expressvpn
+        restart: unless-stopped
+
+    prowlarr:
+        image: linuxserver/prowlarr:develop
+        container_name: prowlarr
+        environment:
+            - PUID=1024
+            - PGID=101
+            - TZ=GB
+        volumes:
+            - /volume1/dockerdata/prowlarr:/config
+        restart: unless-stopped
+        network_mode: service:expressvpn
+        depends_on:
+            - expressvpn
+            - qbittorrent
+            
+    sonarr:
+        image: linuxserver/sonarr:latest
+        container_name: sonarr_v3
+        environment:
+            - PUID=1024
+            - PGID=101
+            - TZ=GB
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /volume1/dockerdata/sonarr/config:/config
+            - /volume1/video/TV:/tv
+            - /volume1/video/Downloads:/downloads
+        restart: unless-stopped
+        network_mode: service:expressvpn
+        depends_on:
+            - prowlarr
+            - qbittorrent
+
+    radarr:
+        image: linuxserver/radarr:latest
+        container_name: radarr_v3
+        environment:
+            - PUID=1024
+            - PGID=101
+            - TZ=GB
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /volume1/dockerdata/radarr3/config:/config
+            - /volume1/video/Films:/movies
+            - /volume1/video/FilmDownloads:/downloads
+        restart: unless-stopped
+        network_mode: service:expressvpn
+        depends_on:
+            - prowlarr
+            - qbittorrent
+
+    lidarr:
+        image: linuxserver/lidarr
+        container_name: lidarr
+        environment:
+            - PUID=1024
+            - PGID=101
+            - TZ=GB
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /volume1/dockerdata/lidarr/config:/config
+            - /volume1/music:/music
+            - /volume1/video/MusicDownloads:/downloads
+        restart: unless-stopped
+        network_mode: service:expressvpn
+        depends_on:
+            - prowlarr
+            - qbittorrent
+    plex:
+        container_name: plex
+        image: linuxserver/plex
+        devices:
+            - /dev/dri:/dev/dri
+        privileged: true
+        environment:
+            PGID: '101'
+            PUID: '1024'
+            VERSION: docker
+        network_mode: host
+        restart: unless-stopped
+        volumes:
+            - /volume1/dockerdata/plex:/config:rw
+            - /volume1/video/TV:/tv:rw
+            - /volume1/video/Films:/movies:rw
+            - /volume1/music:/music:rw
+    get_player:
+        container_name: get_iplayer
+        image: kolonuk/get_iplayer
+        environment:
+            PGID: '101'
+            PUID: '1024'
+        ports:
+            - 8181:8181/tcp
+        restart: unless-stopped
+        volumes:
+            - /etc/localtime:/etc/localtime:ro
+            - /volume1/dockerdata/get_iplayer:/root/.get_iplayer:rw
+            - /volume1/video/Downloads/iPlayer:/root/output:rw           
